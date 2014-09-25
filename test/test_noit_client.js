@@ -31,10 +31,13 @@ function noit_client(host, port, options) {
   host = host || '127.0.0.1';
   port = port || 54102;
   options = options || {};
+  var key = null;
+  var cert = null;
 
-  var key = fs.readFileSync(NOIT_KEY_PATH);
-  var cert = fs.readFileSync(NOIT_CERT_PATH);
-
+  if (fs.existsSync(NOIT_KEY_PATH) && fs.existsSync(NOIT_CERT_PATH)) {
+    key = fs.readFileSync(NOIT_KEY_PATH);
+    cert = fs.readFileSync(NOIT_CERT_PATH);
+  }
   return new NoitClient(host, port, key, cert, null, options);
 }
 
