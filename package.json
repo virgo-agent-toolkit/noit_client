@@ -1,0 +1,33 @@
+{
+  "name": "noit_client",
+  "description": "A client interface for Reconnoiter",
+  "version": "0.0.1",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/virgo-agent-toolkit/noit_client.git"
+  },
+  "dependencies": {
+    "elementtree": "0.1.1",
+    "logmagic": "0.1.4",
+    "request": "^2.12.1",
+    "sprintf": "^0.1.1",
+    "strtok": "^0.1.1",
+    "underscore": "^1.7.0",
+    "zither": "0.1.6"
+  },
+  "devDependencies": {
+    "tape": "2.14.0",
+    "jshint": "2.5.5",
+    "istanbul": "0.3.2"
+  },
+  "scripts": {
+    "lint": "./node_modules/.bin/jshint ./lib ./test",
+    "test": "node test/*.js",
+    "coverage": "./node_modules/.bin/istanbul cover test/*.js"
+  }
+}
