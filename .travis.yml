@@ -9,6 +9,7 @@ node_js:
 
 install:
   - sudo wget https://github.com/boot2docker/osx-installer/releases/download/v1.2.0/Boot2Docker-1.2.0.pkg
+  - sudo installer -pkg Boot2Docker-1.2.0.pkg -target ./
   - sudo boot2docker init
   - sudo boot2docker start
   - sudo boot2docker ip
