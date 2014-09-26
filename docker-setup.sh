@@ -4,12 +4,12 @@ mount -t tmpfs none /var/lib/docker
 # enable ipv4 forwarding for docker
 echo 1 > /proc/sys/net/ipv4/ip_forward
 
-# configure networking
-# ip addr add 127.0.0.1 dev lo
-# ip link set lo up
-# ip addr add 10.1.1.1/24 dev eth0
-# ip link set eth0 up
-# ip route add default via 10.1.1.254
+configure networking
+ip addr add 127.0.0.1 dev lo
+ip link set lo up
+ip addr add 10.1.1.1/24 dev eth0
+ip link set eth0 up
+ip route add default via 10.1.1.254
 
 # configure dns (google public)
 #mkdir -p /run/resolvconf
@@ -18,7 +18,7 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
 # Start docker daemon
 docker -d &
-sleep 5
+sleep 10
 
 docker run -i -t  -P --name postgres -d nachiket/postgres
 docker run --name apache_borrowed -p 80:80 -p 443:443 -d eboraas/apache
