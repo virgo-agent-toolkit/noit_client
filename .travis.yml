@@ -3,19 +3,14 @@ node_js:
   - "0.10"
   - "0.11"
 install:
-  - sudo apt-get update
   - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
   - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-  - sudo apt-get install docker.io -y
-  - sudo ln -sf /usr/bin/docker.io /usr/local/bin/docker
-  - sudo sed -i '$acomplete -F _docker docker' /etc/bash_completion.d/docker.io
-  - apt-get install apt-transport-https -y
-  - sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-  - sudo sh -c "echo deb https://get.docker.io/ubuntu docker main/etc/apt/sources.list.d/docker.list"
-  - sudo apt-get install lxc-docker -y
-  - sudo docker -d
-  - sudo sleep 5
-  - sudo docker ps
+  - sudo apt-get update
+  - sudo mkdir -p /var/lib/docker
+  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
+  - sudo chmod +x /usr/sbin/policy-rc.d
+  - sudo apt-get install -y slirp lxc lxc-docker aufs-tools cgroup-lite
+  - chmod +x linux
   - sudo bash docker-setup.sh
 script:
   - npm run-script lint
