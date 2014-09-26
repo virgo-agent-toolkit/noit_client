@@ -7,7 +7,8 @@ install:
   - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
   - sudo apt-get update
   - sudo mkdir -p /var/lib/docker
-  - sudo apt-get install docker
+  - sudo apt-get install lxc-docker
+  - docker ps
   - sudo bash docker-setup.sh
 script:
   - npm run-script lint
