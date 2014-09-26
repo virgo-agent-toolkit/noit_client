@@ -28,7 +28,7 @@ var CHECK_XML = '<?xml version="1.0" encoding="utf-8"?>' +
 
 
 function noit_client(host, port, options) {
-  host = host || 'noit';
+  host = host || '127.0.0.1';
   port = port || 8888;
   options = options || {};
   var key = null;
