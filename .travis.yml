@@ -1,13 +1,23 @@
+os:
+  - osx
+
+language: node_js
+node_js:
+  - "0.11"
+  - "0.10"  
+
+before_install:
+  - brew update
+  - if brew outdated | grep -qx <package-name>; then brew upgrade <package-name>; fi
+
 install:
-  - sudo sh -c "wget -qO- https://get.docker.io/gpg | apt-key add -"
-  - sudo sh -c "echo deb http://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-  - sudo apt-get update
-  - sudo mkdir -p /var/lib/docker
-  - echo exit 101 | sudo tee /usr/sbin/policy-rc.d
-  - sudo chmod +x /usr/sbin/policy-rc.d
-  - sudo apt-get install -y slirp lxc lxc-docker aufs-tools cgroup-lite bridge-utils
+  - sudo wget https://github.com/boot2docker/osx-installer/releases/download/v1.2.0/Boot2Docker-1.2.0.pkg
+  - sudo boot2docker init
+  - sudo boot2docker start
+  - sudo boot2docker ip
+  - sudo export  DOCKER_HOST=tcp://192.168.59.103:2375
   - sudo bash docker-setup.sh
-  
+
 script:
   - npm run-script lint
   - npm run-script test
