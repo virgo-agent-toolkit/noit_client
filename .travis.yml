@@ -1,6 +1,6 @@
 install:
   - mount
-  - curl https://raw.githubusercontent.com/matthewfl/travis-docker/master/strap | source /dev/stdin
+  - sudo curl https://raw.githubusercontent.com/matthewfl/travis-docker/master/strap | source /dev/stdin
 
 script:
   - docker run -i -t  -P --name postgres -d nachiket/postgres
