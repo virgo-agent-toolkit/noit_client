@@ -1,20 +1,11 @@
-os:
-  - osx
-
-language: node_js
-
-node_js:
-  - "0.11"
-  - "0.10"  
-
 install:
-  - sudo wget https://github.com/boot2docker/osx-installer/releases/download/v1.2.0/Boot2Docker-1.2.0.pkg
-  - sudo installer -pkg Boot2Docker-1.2.0.pkg -target ./
-  - sudo boot2docker init
-  - sudo boot2docker start
-  - sudo boot2docker ip
-  - sudo export  DOCKER_HOST=tcp://192.168.59.103:2375
-  - sudo bash docker-setup.sh
+  - mount
+  - curl https://raw.githubusercontent.com/matthewfl/travis-docker/master/strap | source /dev/stdin
+
+script:
+  - docker run -i -t  -P --name postgres -d nachiket/postgres
+  - docker run --name apache_borrowed -p 80:80 -p 443:443 -d eboraas/apache
+  - docker run -p 32322:32322 -p 43191:43191 -p 8888:8888 -ti --link postgres:postgres --link apache_borrowed:apache --name noit nachiket/noit
 
 script:
   - npm run-script lint
