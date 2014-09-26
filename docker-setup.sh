@@ -1,5 +1,7 @@
 
 # Use 
+modprobe bridge
+
 docker -d
 
 sleep 10
