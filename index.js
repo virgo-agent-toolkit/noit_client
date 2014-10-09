@@ -1,1 +1,1 @@
-exports.noit_client = require("./lib/noit_client.js");
+module.exports = require("./lib/noit_client.js");

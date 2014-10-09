@@ -12,7 +12,7 @@ npm install noit_client
 ```javascript
 var client = require('noit_client').NoitClient;
 // values for key, cert, ca are passed here
-var noit_client = client('127.0.0.1', '8900', key, cert, ca);
+var noit_client = new client('127.0.0.1', '8900', key, cert, ca);
 
 noit_client.getVersion(function(err, response){
   if (response) {
