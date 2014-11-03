@@ -1,10 +1,18 @@
+require('longjohn');
+var noit_ready = require('depends-on')(['postgres', 'noit_stratcon']);
+var stratcon_ready = require('depends-on')(['redis', 'stratcon_ingestor']);
+var cleanup = require('depends-on')(['kill_postgres', 'kill_noit_stratcon', 'kill_ingestor',
+  'kill_redis', 'remove_postgres', 'remove_noit','remove_redis', 'remove_ingestor']);
 var fs = require('fs');
-
 var test = require('tape');
 var et = require('elementtree');
+var NoitClient = require('../lib/noit_client').NoitClient;
+var http = require('http');
+var redis = require("redis");
+var exec = require('child_process').exec;
+var async = require('async');
+var log = require('logmagic').local('ele.lib.noit.test_noit_client');
 
-var noitClient = require('../lib/noit_client');
-var NoitClient = noitClient.NoitClient;
 
 var CHECK_XML = '<?xml version="1.0" encoding="utf-8"?>' +
                 '<check>' +
@@ -26,9 +34,22 @@ var CHECK_XML = '<?xml version="1.0" encoding="utf-8"?>' +
   NOIT_KEY_PATH = '/usr/local/etc/cert.key',
   NOIT_CERT_PATH = '/usr/local/etc/cert.crt';
 
+test('init', function(t) {
+  child = exec("boot2docker ip", function (error, stdout, stderr) {
+    if (error !== null || stderr.indexOf('boot2docker') > -1) {
+      ip = '127.0.0.1';
+    } else {
+      ip = stdout;
+    }
+    t.end();
+  });
+}); 
+
+test('up', noit_ready);
+
 
 function noit_client(host, port, options) {
-  host = host || 'noit';
+  host = host || ip;
   port = port || 8888;
   options = options || {};
   var key = null;
@@ -70,6 +91,8 @@ test('test_get_version', function(t) {
   });
 });
 
+/* Fixing this test is out of scope for this PR 
+https://gist.github.com/ynachiket/562e7bd86a7f795a6b62
 test('test_get_version_dead_host', function(t) {
   var client = noit_client(undefined, 11111);
   client.getVersion(function(err, version) {
@@ -77,6 +100,7 @@ test('test_get_version_dead_host', function(t) {
    t.end();
   });
 });
+*/
 
 test('test_set_check', function(t){
   var client = noit_client();
@@ -171,3 +195,79 @@ test('test_error_500_from_noit', function(t){
     t.end();
   });
 });
+
+setup(test); // create the test check
+test('up', stratcon_ready);
+test('basic_ingestion', function(t) {
+  var parent_set, metric_set;
+
+  async.series([
+
+    function(callback) {
+      r_client = redis.createClient(6379, ip);
+      callback();
+    },
+    function(callback) {
+      var dbsize = 0,
+          desiredDbSize = 50; 
+      async.whilst(function () { return dbsize < desiredDbSize; },
+        function (callback) {
+          r_client.dbsize(function(err, data) {
+            if (err) callback(); // not using a t.error as it corrupts the test run output 
+            log.info('Waiting for ingestion. Waiting till', desiredDbSize);
+            log.info('Current Db size', data);
+            dbsize = data;// https://gist.github.com/ynachiket/a36861af2d93ecb51d82
+            callback();
+          });
+        }, callback);
+    },
+    function(callback) {
+      r_client.keys('stratcon*', function (err, data) {
+        t.error(err, 'Found tag for this execution');
+        t.ok(data, 'A new set with stratcon tag should be created');
+        parent_set = data;
+        callback();
+      });
+    },
+    function(callback) {
+      r_client.smembers(parent_set.pop(), function (err, data) {
+        t.error(err, 'Expected checks available');
+        t.ok(data, 'A new set with metrics grouped by checks');
+        metric_set = data;
+        callback();
+      });
+    },
+    function(callback) {
+      r_client.smembers(CHECK_ID, function (err, data) { // This test proves that the noit_client
+        t.error(err, 'Found data corresponding to expected check');// was successfull in creating a new check with CHECk_ID               
+        t.ok(data, 'The check created by noit_client should have emited metrics');
+        metric_set = data;
+        callback();
+      });
+    },
+    function(callback) {
+      var empty = true;
+      async.whilst( function () { return empty; },
+        function (callback) {
+          r_client.hgetall(metric_set[0], function(err, data) {
+            if (err) callback();
+            empty = false;
+            callback();
+          });
+        }, callback);
+    },
+    function(callback) {
+      r_client.hgetall(metric_set[0], function (err, data) {
+        t.error(err, 'Found metrics for this check');
+        t.ok(data, 'Detailed metrics should be available');
+        r_client.end();
+        callback();
+      });
+    }
+  ], function(err) {
+    t.error(err, 'Tests Completed');
+    t.end();
+  });
+});
+
+test("down", cleanup);

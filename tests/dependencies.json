@@ -1,0 +1,70 @@
+  {
+  "postgres": {
+    "cmd": ["docker", "run", "-i", "-t",  "-p", "5432:5432", "--name", "postgres",
+     "-d", "nachiket/postgres"],
+    "wait_for": {
+      "exit_code": 0
+    },
+    "signal": "SIGKILL"
+
+  },
+  "noit_stratcon": {
+    "cmd": ["docker", "run", "-d", "-p", "32322:32322", "-p", "43191:43191", "-p",
+     "8888:8888", "-p", "80:80", "-ti", "--link", "postgres:postgres",
+      "-v", "/var/log/stratcon.persist/127.0.0.1/noit-test:/var/log/stratcon.persist/127.0.0.1/noit-test",
+       "--name", "noit", "nachiket/noit"],
+    "depends": ["postgres"],
+    "wait_for": {
+      "exit_code": 0
+    },
+    "signal": "SIGKILL"
+  },
+  "redis": {
+    "cmd": ["docker", "run", "-d", "--name", "redis", "-p", "6379:6379", "dockerfile/redis"],
+    "depends": ["noit_stratcon"],
+    "wait_for": {
+      "exit_code": 0
+    },
+    "signal": "SIGKILL"
+  },
+  "stratcon_ingestor": {
+    "cmd": ["docker", "run", "-d", "--name", "ingestor", "--link", "redis:redis",
+     "-v", "/var/log/stratcon.persist/127.0.0.1/noit-test:/var/log/stratcon.persist/127.0.0.1/noit-test",
+      "--link", "noit:noit", "nachiket/stratcon_ingestor"],
+    "depends": ["redis"],
+    "wait_for": {
+      "exit_code": 0
+    },
+    "signal": "SIGKILL"
+  },
+  "kill_postgres": {
+    "cmd": ["docker", "kill", "postgres"]
+  },
+  "kill_noit_stratcon": {
+    "cmd": ["docker", "kill", "noit"]
+  },
+  "remove_postgres": {
+     "cmd": ["docker", "rm", "-f", "postgres"],
+     "depends": ["kill_postgres"]
+  },
+  "remove_noit": {
+     "cmd": ["docker", "rm", "-f", "noit"],
+     "depends": ["kill_noit_stratcon"]
+  },
+  "kill_redis": {
+    "cmd": ["docker", "kill", "redis"],
+    "depends": ["kill_ingestor"]
+  },
+  "remove_redis": {
+     "cmd": ["docker", "rm", "-f", "redis"],
+     "depends": ["kill_redis"]
+  },
+  "kill_ingestor": {
+    "cmd": ["docker", "kill", "ingestor"],
+    "depends": ["kill_noit_stratcon"]
+  },
+  "remove_ingestor": {
+     "cmd": ["docker", "rm", "-f", "ingestor"],
+     "depends": ["kill_ingestor"]
+  } 
+}
