@@ -27,6 +27,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   config.vm.provision :shell, :inline => "sudo docker pull nachiket/postgres"
   config.vm.provision :shell, :inline => "sudo docker pull nachiket/reconnoiter"
-  config.vm.provision :shell, :inline => "sudo docker pull dockerfile/redis"
+  config.vm.provision :shell, :inline => "sudo docker pull redis"
   config.vm.provision :shell, :inline => "sudo docker pull nachiket/stratcon_ingestor"
 end
